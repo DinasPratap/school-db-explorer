@@ -3,6 +3,78 @@
 ## Project Overview
 This is a DBMS project for managing farmer crop cycles, resource optimization, and agricultural analytics. The database tracks farmers, crops, seasons, water usage, fertilizer usage, and yield records to provide insights for agricultural decision-making.
 
+**Full Stack Application**: Includes a React frontend with TypeScript, Node.js backend API with Express, and Oracle Database XE in Docker.
+
+## Prerequisites
+- **Docker Desktop** - For running Oracle Database XE
+- **Node.js** (v18 or later) - For backend and frontend
+- **npm** - For installing dependencies
+
+## Quick Start (Full Stack)
+
+### 1. Clone the repository
+```bash
+git clone <repository-url>
+cd school-db-explorer
+```
+
+### 2. Install dependencies
+```bash
+# Install backend dependencies
+cd backend
+npm install
+
+# Install frontend dependencies
+cd ../frontend
+npm install
+cd ..
+```
+
+### 3. Run the full stack application
+```bash
+chmod +x run.sh
+./run.sh
+```
+
+This script will:
+- Start Oracle Database XE in Docker (if not already running)
+- Initialize the database with schema and sample data
+- Start the backend API server on http://localhost:3001
+- Start the frontend dev server on http://localhost:8081
+
+### 4. Access the application
+- **Frontend**: http://localhost:8081
+- **Backend API**: http://localhost:3001
+- **Oracle Database**: localhost:1521/XE (user: system, password: Oracle123)
+
+## Manual Setup
+
+### Start Oracle Database
+```bash
+docker run -d -p 1521:1521 -p 8080:8080 -e ORACLE_PASSWORD=Oracle123 --name oracle-xe gvenzl/oracle-xe:21-slim
+```
+
+Wait 30-60 seconds for the database to initialize, then run:
+```bash
+docker cp db/01_schema.sql oracle-xe:/tmp/
+docker cp db/run_all.sql oracle-xe:/tmp/
+docker exec oracle-xe sqlplus -L system/Oracle123@//localhost:1521/XE @/tmp/run_all.sql
+```
+
+### Start Backend
+```bash
+cd backend
+npm install
+npm start
+```
+
+### Start Frontend
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
 ## PL-SQL Requirements Met
 This project demonstrates all required PL-SQL concepts:
 

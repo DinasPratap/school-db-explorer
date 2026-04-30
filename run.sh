@@ -3,6 +3,9 @@
 # Farmer Crop & Resource Optimization Database - Full Stack Run Script
 # This script starts Oracle, Backend API, and Frontend
 
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
 echo "=========================================="
 echo "  AgriOptima - Full Stack Application"
 echo "=========================================="
@@ -33,16 +36,16 @@ fi
 
 # Copy SQL files to container
 echo "Copying SQL files to container..."
-docker cp /Users/dinasmain/Desktop/school-db-explorer/db/01_schema.sql oracle-xe:/tmp/
-docker cp /Users/dinasmain/Desktop/school-db-explorer/db/02_indexes.sql oracle-xe:/tmp/
-docker cp /Users/dinasmain/Desktop/school-db-explorer/db/03_sample_data.sql oracle-xe:/tmp/
-docker cp /Users/dinasmain/Desktop/school-db-explorer/db/04_views.sql oracle-xe:/tmp/
-docker cp /Users/dinasmain/Desktop/school-db-explorer/db/05_procedures.sql oracle-xe:/tmp/
-docker cp /Users/dinasmain/Desktop/school-db-explorer/db/06_functions.sql oracle-xe:/tmp/
-docker cp /Users/dinasmain/Desktop/school-db-explorer/db/07_triggers.sql oracle-xe:/tmp/
-docker cp /Users/dinasmain/Desktop/school-db-explorer/db/08_queries.sql oracle-xe:/tmp/
-docker cp /Users/dinasmain/Desktop/school-db-explorer/db/09_demo.sql oracle-xe:/tmp/
-docker cp /Users/dinasmain/Desktop/school-db-explorer/run_all.sql oracle-xe:/tmp/
+docker cp "$SCRIPT_DIR/db/01_schema.sql" oracle-xe:/tmp/
+docker cp "$SCRIPT_DIR/db/02_indexes.sql" oracle-xe:/tmp/
+docker cp "$SCRIPT_DIR/db/03_sample_data.sql" oracle-xe:/tmp/
+docker cp "$SCRIPT_DIR/db/04_views.sql" oracle-xe:/tmp/
+docker cp "$SCRIPT_DIR/db/05_procedures.sql" oracle-xe:/tmp/
+docker cp "$SCRIPT_DIR/db/06_functions.sql" oracle-xe:/tmp/
+docker cp "$SCRIPT_DIR/db/07_triggers.sql" oracle-xe:/tmp/
+docker cp "$SCRIPT_DIR/db/08_queries.sql" oracle-xe:/tmp/
+docker cp "$SCRIPT_DIR/db/09_demo.sql" oracle-xe:/tmp/
+docker cp "$SCRIPT_DIR/run_all.sql" oracle-xe:/tmp/
 
 # Initialize database
 echo "Initializing database..."
@@ -51,21 +54,62 @@ echo "Database initialized."
 
 # Start Backend
 echo "Starting Backend API server..."
-cd /Users/dinasmain/Desktop/school-db-explorer/backend
+cd "$SCRIPT_DIR/backend"
+
+# Check if node_modules exists
+if [ ! -d "node_modules" ]; then
+    echo "Installing backend dependencies..."
+    npm install
+fi
+
 npm start &
 BACKEND_PID=$!
 echo "Backend started on http://localhost:3001 (PID: $BACKEND_PID)"
 
 # Wait for backend to be ready
 echo "Waiting for backend to be ready..."
-sleep 5
+sleep 8
+
+# Check if backend is still running
+if ! kill -0 $BACKEND_PID 2>/dev/null; then
+    echo "ERROR: Backend failed to start. Check logs above."
+    echo "Possible issues:"
+    echo "  - Oracle database not ready"
+    echo "  - Missing dependencies (run: cd backend && npm install)"
+    echo "  - Port 3001 already in use"
+    exit 1
+fi
+
+echo "Backend is running successfully."
 
 # Start Frontend
 echo "Starting Frontend..."
-cd /Users/dinasmain/Desktop/school-db-explorer/frontend
+cd "$SCRIPT_DIR/frontend"
+
+# Check if node_modules exists
+if [ ! -d "node_modules" ]; then
+    echo "Installing frontend dependencies..."
+    npm install
+fi
+
 npm run dev &
 FRONTEND_PID=$!
 echo "Frontend started (PID: $FRONTEND_PID)"
+
+# Wait for frontend to be ready
+echo "Waiting for frontend to be ready..."
+sleep 5
+
+# Check if frontend is still running
+if ! kill -0 $FRONTEND_PID 2>/dev/null; then
+    echo "ERROR: Frontend failed to start. Check logs above."
+    echo "Possible issues:"
+    echo "  - Missing dependencies (run: cd frontend && npm install)"
+    echo "  - Port 8081 already in use"
+    exit 1
+fi
+
+echo "Frontend is running successfully."
 
 echo ""
 echo "=========================================="
